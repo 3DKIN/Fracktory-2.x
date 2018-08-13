@@ -1,0 +1,19 @@
+./openscad -D 'model="i.stl"' s.scad --colorscheme Starnight --autocenter -o x1.png
+
+
+
+$ Cura\\openscad\\openscad.exe -D 'model=\"C:\\Users\\Ashwin\\.fracktory\\2.0\\W
+irelessTemp\\D.stl\"' Cura\\openscad\\stlpreview.scad
+
+
+'Cura\\openscad\\openscad.exe -D '\'\'model="C:\\Users\\Ashwin\\.fracktory\\2.0\\WirelessTemp\\D.stl"\'\', Cura\\openscad\\stlpreview.scad
+
+import subprocess
+m = '"model=""C:\\Users\\Ashwin\\.fracktory\\2.0\\WirelessTemp\\D.stl"""'
+subprocess.check_call(["Cura\openscad\openscad.exe", "-D", m , 'Cura\openscad\stlpreview.scad'],shell=True,stderr=subprocess.STDOUT)
+
+
+subprocess.check_call(r'Cura\openscad\openscad.exe -D "model=""C:\\Users\\Ashwin\\.fracktory\\2.0\\WirelessTemp\\D.stl""" Cura\openscad\stlpreview.scad'
+,shell=False,stderr=subprocess.STDOUT)
+
+'Cura\openscad\openscad.exe -D "model=""C:\Users\Ashwin\.fracktory\2.0\WirelessTemp\D.stl""" Cura\openscad\stlpreview.scad'
