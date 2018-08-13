@@ -49,3 +49,5 @@ Folder structure is as below:
     + Errors and Logging
         + error logs can be found in windows under -> Users/< user >/.fracktory/< version >/output_log.txt
 
+4. How to run while development?
+    + Use the dist/fracktory.bat file to run fracktory after making changes
