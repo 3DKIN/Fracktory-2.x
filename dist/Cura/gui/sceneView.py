@@ -69,10 +69,12 @@ class SceneView(openglGui.glGuiPanel):
 		self._projMatrix = None
 		self.tempMatrix = None
 
+		self.flagSlicingCancelled = False
+
 		# glColor4f(0.2, 0.6, 1.0, 1.0)
 		self.openFileButton      = openglGui.glButton(self, 4, _("Load"), (0,0), self.showLoadModel)
 		self.printButton         = openglGui.glButton(self, 6, _("Print"), (1,0), self.OnPrintButton2)
-		self.printButton.setDisabled(False)
+		# self.printButton.setDisabled(True)
 
 		self.wirelessButton         = openglGui.glButton(self, 59, _("Wireless Print"), (3,0), self.OnWirelessPrintButton)
 		# self.wirelessButton.setDisabled(True)
@@ -84,6 +86,10 @@ class SceneView(openglGui.glGuiPanel):
 		# self.iSliceButton.setDisabled(True)
 
 		self.printButton2         = openglGui.glButton(self, 6, _("USB Print"), (2,0), self.OnPrintButton)
+
+		self.sliceButton = openglGui.glBasicButton(self, _("Slice"), (-1,-1), self.OnSliceButton)
+		self.cancelSliceButton = openglGui.glBasicButton(self, _("Cancel"), (-2,-1), self.OnCancelSliceButton)
+		self.cancelSliceButton.setHidden(True)
 
 		group = []
 		self.rotateToolButton = openglGui.glRadioButton(self, 8, _("Rotate"), (0,-1), group, self.OnToolSelect)
@@ -135,10 +141,24 @@ class SceneView(openglGui.glGuiPanel):
 		self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
 		self.Bind(wx.EVT_LEAVE_WINDOW, self.OnMouseLeave)
 
+		self.setPrintButtonsDisabled(True)
+		self.setSliceButtonHidden(True)
+
 		self.OnViewChange()
 		self.OnToolSelect(0)
 		self.updateToolButtons()
 		self.updateProfileToControls()
+
+	def setPrintButtonsDisabled(self, disabled):
+		# disabled = disabled and not self.isSlicingFinished()
+		self.printButton.setDisabled(disabled)
+		self.wirelessButton.setDisabled(disabled)
+		self.printButton2.setDisabled(disabled)
+		# self.sliceButton.setDisabled(disabled)
+		# self.cancelSliceButton.setHidden(True)
+
+	def setSliceButtonHidden(self, hidden=True):
+		self.sliceButton.setHidden(hidden or (profile.getPreference('auto_slice') == 'True'))
 
 	def loadGCodeFile(self, filename):
 		self.OnDeleteAll(None)
@@ -150,7 +170,9 @@ class SceneView(openglGui.glGuiPanel):
 		self._engineResultView.setResult(self._engine._result)
 		self.printButton.setBottomText('')
 		self.viewSelection.setValue(4)
-		self.printButton.setDisabled(False)
+		# self.printButton.setDisabled(False)
+		self.setPrintButtonsDisabled(False)
+		self.setSliceButtonHidden(False)
 		# self.youMagineButton.setDisabled(True)
 		self.OnViewChange()
 
@@ -207,6 +229,8 @@ class SceneView(openglGui.glGuiPanel):
 				self.loadSceneFiles(scene_filenames)
 				self._selectObject(None)
 				self.sceneUpdated()
+				self.setPrintButtonsDisabled(False)
+				self.setSliceButtonHidden(False)
 				newZoom = numpy.max(self._machineSize)
 				self._animView = openglGui.animation(self, self._viewTarget.copy(), numpy.array([0,0,0], numpy.float32), 0.5)
 				self._animZoom = openglGui.animation(self, self._zoom, newZoom, 0.5)
@@ -257,6 +281,13 @@ class SceneView(openglGui.glGuiPanel):
 		filename = dlg.GetPath()
 		dlg.Destroy()
 		meshLoader.saveMeshes(filename, self._scene.objects())
+
+	def OnCancelSliceButton(self, button):
+		self.cancelSlicing()
+		self.cancelSliceButton.setHidden(True)
+
+	def OnSliceButton(self, button):
+		self.sceneUpdated(manual=True)
 
 	def OnPrintButton(self, button):
 		if button == 1:
@@ -732,13 +763,25 @@ class SceneView(openglGui.glGuiPanel):
 		self._scene.merge(self._selectedObj, self._focusObj)
 		self.sceneUpdated()
 
-	def sceneUpdated(self):
-		wx.CallAfter(self._sceneUpdateTimer.Start, 500, True)
+	def isSlicingFinished(self):
+		return self._engine and self._engine.getResult() and self._engine.getResult().isFinished()
+
+	def cancelSlicing(self):
+		self.flagSlicingCancelled = True
 		self._engine.abortEngine()
 		self._scene.updateSizeOffsets()
 		self.QueueRefresh()
 
+	def sceneUpdated(self, manual=False):
+		hasObj = len(self._scene.objects()) > 0
+		if hasObj and (profile.getPreference('auto_slice') == 'True' or manual):
+			wx.CallAfter(self._sceneUpdateTimer.Start, 500, True)
+		self.setPrintButtonsDisabled(not hasObj)
+		self.setSliceButtonHidden(not hasObj)
+		self.cancelSlicing()
+
 	def _onRunEngine(self, e):
+		self.flagSlicingCancelled = False
 		if self._isSimpleMode:
 			self._engine.runEngine(self._scene, self.GetTopLevelParent().simpleSettingsPanel.getSettingOverrides())
 		else:
@@ -750,7 +793,11 @@ class SceneView(openglGui.glGuiPanel):
 		if not finished:
 			if self.printButton.getProgressBar() is not None and progressValue >= 0.0 and abs(self.printButton.getProgressBar() - progressValue) < 0.01:
 				return
-		self.printButton.setDisabled(not finished)
+		# self.printButton.setDisabled(not finished)
+		self.setPrintButtonsDisabled(not finished)
+		self.setSliceButtonHidden(not (self.flagSlicingCancelled or finished))
+		self.cancelSliceButton.setHidden(self.flagSlicingCancelled or finished)
+		# self.cancelSliceButton.setDisabled(not finished)
 		# self.wirelessButton.setDisabled(not finished)
 		if progressValue >= 0.0:
 			self.printButton.setProgressBar(progressValue)

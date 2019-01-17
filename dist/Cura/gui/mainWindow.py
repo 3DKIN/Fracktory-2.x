@@ -380,8 +380,13 @@ class mainWindow(wx.Frame):
 		self.scene._scene.pushFree()
 		self.scene.sceneUpdated()
 
+	def OnPreferencesClosed(self):
+		self.scene.sliceButton.setHidden(profile.getPreference('auto_slice') == 'True')
+		if profile.getPreference('auto_slice') == 'True':
+			self.scene.sceneUpdated()
+
 	def OnPreferences(self, e):
-		prefDialog = preferencesDialog.preferencesDialog(self)
+		prefDialog = preferencesDialog.preferencesDialog(self, self.OnPreferencesClosed)
 		prefDialog.Centre()
 		prefDialog.Show()
 		prefDialog.Raise()

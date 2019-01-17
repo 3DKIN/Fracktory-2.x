@@ -546,6 +546,81 @@ class glButton(glGuiControl):
 			return True
 		return False
 
+class glBasicButton(glGuiControl):
+	def __init__(self, parent, tooltip, pos, callback):
+		self._hidden = False
+		super(glBasicButton, self).__init__(parent, pos)
+		self._tooltip = tooltip
+		self._parent = parent
+		self._callback = callback
+		self._focus = False
+		self._disabled = False
+
+	def setHidden(self, value):
+		self._hidden = value
+
+	def setDisabled(self, value):
+		self._disabled = value
+
+	def getMinSize(self):
+		if self._hidden:
+			return 0, 0
+		width, height = openglHelpers.glGetStringSize(self._tooltip) # self.getMinSize()[0]
+		width = width * 2.5
+		height = height * 3
+		return width, height
+		# return self._base._buttonSize, self._base._buttonSize
+
+	def _getPixelPos(self):
+		x0, y0, w, h = self.getSize()
+		return x0 + w / 2, y0 + h / 2
+
+	def draw(self):
+		if self._hidden:
+			return
+
+		width, height = self.getMinSize()
+		pos = self._getPixelPos()
+
+		scale = 1
+		if self._focus:
+		 	scale = 1.05
+		if self._disabled:
+			glColor4ub(128,128,128,128)
+		else:
+			if self._focus:
+				glColor4ub(5, 15, 30, 200)
+			else:
+				glColor4ub(5, 15, 30, 255)
+		openglHelpers.glDrawQuad(pos[0]-width*scale/2, pos[1]-height*scale/2, width*scale, height*scale)
+		glPushMatrix()
+		glTranslatef(pos[0], pos[1]+height*scale/8, 0)
+		glDisable(GL_TEXTURE_2D)
+		glColor4ub(255,255,255,255)
+		openglHelpers.glDrawStringCenter(self._tooltip)
+		glPopMatrix()
+
+
+	def _checkHit(self, x, y):
+		if self._hidden or self._disabled:
+			return False
+		bs = self.getMinSize()
+		pos = self._getPixelPos()
+		return -bs[0] * 0.5 <= x - pos[0] <= bs[0] * 0.5 and -bs[1] * 0.5 <= y - pos[1] <= bs[1] * 0.5
+
+	def OnMouseMotion(self, x, y):
+		if self._checkHit(x, y):
+			self._focus = True
+			return True
+		self._focus = False
+		return False
+
+	def OnMouseDown(self, x, y, button):
+		if self._checkHit(x, y):
+			self._callback(button)
+			return True
+		return False
+
 class glRadioButton(glButton):
 	def __init__(self, parent, imageID, tooltip, pos, group, callback):
 		super(glRadioButton, self).__init__(parent, imageID, tooltip, pos, self._onRadioSelect)
