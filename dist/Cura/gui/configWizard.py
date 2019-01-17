@@ -123,8 +123,10 @@ class InfoPage(wx.wizard.WizardPageSimple):
 
 		self.rowNr = 2
 
-	def AddText(self, info):
+	def AddText(self, info, istitle=False):
 		text = wx.StaticText(self, -1, info)
+		if istitle:
+			text.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
 		self.GetSizer().Add(text, pos=(self.rowNr, 0), span=(1, 2), flag=wx.LEFT | wx.RIGHT)
 		self.rowNr += 1
 		return text
@@ -163,6 +165,13 @@ class InfoPage(wx.wizard.WizardPageSimple):
 		self.rowNr += 1
 		return button
 
+	def AddButtonExt(self, label):
+		button = wx.Button(self, -1, label)
+		button.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+		self.GetSizer().Add(button, pos=(self.rowNr, 0), span=(1, 2), flag=wx.EXPAND|wx.RIGHT)
+		self.rowNr += 1
+		return button
+
 	def AddDualButton(self, label1, label2):
 		button1 = wx.Button(self, -1, label1)
 		self.GetSizer().Add(button1, pos=(self.rowNr, 0), flag=wx.RIGHT)
@@ -182,6 +191,14 @@ class InfoPage(wx.wizard.WizardPageSimple):
 		ret = wx.TextCtrl(self, -1, value)
 		self.GetSizer().Add(text, pos=(self.rowNr, 0), span=(1, 1), flag=wx.LEFT)
 		self.GetSizer().Add(ret, pos=(self.rowNr, 1), span=(1, 1), flag=wx.LEFT)
+		self.rowNr += 1
+		return ret
+
+	def AddLabelTextCtrlExt(self, info, value):
+		text = wx.StaticText(self, -1, info)
+		ret = wx.TextCtrl(self, -1, value)
+		self.GetSizer().Add(text, pos=(self.rowNr, 0), span=(1, 1), flag=wx.LEFT)
+		self.GetSizer().Add(ret, pos=(self.rowNr, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND)
 		self.rowNr += 1
 		return ret
 
@@ -347,7 +364,9 @@ M117 Printing...
 class OtherMachineSelectPage(InfoPage):
 	def __init__(self, parent):
 		super(OtherMachineSelectPage, self).__init__(parent, _("Machine Selection"))
+		# self.AddHiddenSeperator()
 		self.AddText(_("Please choose your machine from the list"))
+		
 		self.options = []
 		machines = resources.getDefaultMachineProfiles()
 		machines.sort()
@@ -357,6 +376,28 @@ class OtherMachineSelectPage(InfoPage):
 			item.filename = filename
 			item.Bind(wx.EVT_RADIOBUTTON, self.OnProfileSelect)
 			self.options.append(item)
+		
+		# self.machine = self.AddCombo(_("Machine:"), map(lambda m: os.path.splitext(os.path.basename(m))[0], machines))
+		# self.sn_number = self.AddLabelTextCtrlExt(_("Serial #"), "")
+		
+		# self.AddHiddenSeperator()
+		
+		# self.AddText(_("Owner Info"), istitle=True)
+		# self.owner_name = self.AddLabelTextCtrlExt(_("Name/Company"), "")
+		# self.owner_email = self.AddLabelTextCtrlExt(_("Email"), "")
+		# self.owner_phone = self.AddLabelTextCtrlExt(_("Phone"), "")
+		# self.owner_address_1 = self.AddLabelTextCtrlExt(_("Address Line 1"), "")
+		# self.owner_address_2 = self.AddLabelTextCtrlExt(_("Address Line 2"), "")
+		# self.owner_address_3 = self.AddLabelTextCtrlExt(_("City"), "")
+		# self.owner_address_4 = self.AddLabelTextCtrlExt(_("State"), "")
+		# self.owner_address_5 = self.AddLabelTextCtrlExt(_("Country"), "")
+		# self.owner_address_6 = self.AddLabelTextCtrlExt(_("PIN Code"), "")
+
+		# self.AddHiddenSeperator()
+		# self.btn_register = self.AddButtonExt("Register Machine Now")
+
+	# def AllowNext(self):
+	#  return False
 
 	def OnProfileSelect(self, e):
 		wx.wizard.WizardPageSimple.Chain(self, self.GetParent().otherMachineInfoPage)
