@@ -2,18 +2,20 @@
   !define VERSION '1.00'
 !endif
 
+!define DIST_NAME "Fracktory2.6"
+
 ; The name of the installer
 Name "Fracktory 2018"
 
 ; The file to write
-OutFile "Fracktory_Setup.exe"
+OutFile "Setup_${DIST_NAME}.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Fracktory2.5
+InstallDir $PROGRAMFILES\${DIST_NAME}
 
 ; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Fracktory2.5" "Install_Dir"
+InstallDirRegKey HKLM "Software\${DIST_NAME}" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -75,24 +77,25 @@ Section "Fracktory"
   SetOutPath $INSTDIR
 
   ; Put file there
-  File /r "dist\"
+  ;File /r "dist\"
+  File /r /x "*.pyc" "dist\"
 
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\Fracktory2.5" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\${DIST_NAME}" "Install_Dir" "$INSTDIR"
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Fracktory2.5" "DisplayName" "Fracktory2.5"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Fracktory2.5" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Fracktory2.5" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Fracktory2.5" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "DisplayName" "${DIST_NAME}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
 
   ; Write start menu entries for all users
   SetShellVarContext all
 
-  CreateDirectory "$SMPROGRAMS\Fracktory2.5"
-  CreateShortCut "$SMPROGRAMS\Fracktory2.5\Uninstall Fracktory.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Fracktory2.5\Fracktory.lnk" "$INSTDIR\python\pythonw.exe " '-m "Cura.cura"' "$INSTDIR\resources\fracktory.ico" 0
+  CreateDirectory "$SMPROGRAMS\${DIST_NAME}"
+  CreateShortCut "$SMPROGRAMS\${DIST_NAME}\Uninstall Fracktory.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\${DIST_NAME}\Fracktory.lnk" "$INSTDIR\python\pythonw.exe " '-m "Cura.cura"' "$INSTDIR\resources\fracktory.ico" 0
 
 
 
@@ -101,7 +104,7 @@ SectionEnd
 Function LaunchLink
   ; Write start menu entries for all users
   SetShellVarContext all
-  Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\Fracktory2.5\Fracktory.lnk"'
+  Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\${DIST_NAME}\Fracktory.lnk"'
 FunctionEnd
 
 Section "Install Visual Studio 2010 Redistributable"
@@ -150,13 +153,13 @@ SectionEnd
 Section "Uninstall"
 
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Fracktory2.5"
-  DeleteRegKey HKLM "SOFTWARE\Fracktory2.5"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}"
+  DeleteRegKey HKLM "SOFTWARE\${DIST_NAME}"
 
   ; Write start menu entries for all users
   SetShellVarContext all
   ; Remove directories used
-  RMDir /r "$SMPROGRAMS\Fracktory2.5"
+  RMDir /r "$SMPROGRAMS\${DIST_NAME}"
   RMDir /r "$INSTDIR"
 
 SectionEnd

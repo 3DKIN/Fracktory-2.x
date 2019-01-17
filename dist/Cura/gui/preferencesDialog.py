@@ -12,10 +12,12 @@ from Cura.util import pluginInfo
 from Cura.util import resources
 
 class preferencesDialog(wx.Dialog):
-	def __init__(self, parent):
+	def __init__(self, parent, onCloseFn=None):
 		super(preferencesDialog, self).__init__(None, title=_("Preferences"))
 
 		wx.EVT_CLOSE(self, self.OnClose)
+
+		self.onCloseFn = onCloseFn
 
 		self.parent = parent
 		extruderCount = int(profile.getMachineSetting('extruder_amount'))
@@ -52,10 +54,11 @@ class preferencesDialog(wx.Dialog):
 		configBase.TitleRow(right, _("Fracktory settings"))
 		configBase.SettingRow(right, 'auto_detect_sd')
 		# configBase.SettingRow(right, 'check_for_updates')
+		configBase.SettingRow(right, 'auto_slice')
 		configBase.SettingRow(right, 'submit_slice_information')
 
 		self.okButton = wx.Button(right, -1, 'Ok')
-		right.GetSizer().Add(self.okButton, (right.GetSizer().GetRows(), 0), flag=wx.BOTTOM, border=5)
+		right.GetSizer().Add(self.okButton, (right.GetSizer().GetRows(), 1), flag=wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, border=5)
 		self.okButton.Bind(wx.EVT_BUTTON, lambda e: self.Close())
 
 		main.Fit()
@@ -63,6 +66,8 @@ class preferencesDialog(wx.Dialog):
 
 	def OnClose(self, e):
 		#self.parent.reloadSettingPanels()
+		if self.onCloseFn:
+			self.onCloseFn()
 		self.Destroy()
 
 class machineSettingsDialog(wx.Dialog):

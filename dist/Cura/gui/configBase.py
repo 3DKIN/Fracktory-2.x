@@ -32,19 +32,19 @@ class configPanelBase(wx.Panel):
 		return leftConfigPanel, rightConfigPanel
 
 	def CreateConfigPanel(self, parent):
-		configPanel = wx.Panel(parent);
+		configPanel = wx.Panel(parent)
 		leftConfigPanel = wx.Panel(configPanel)
 		rightConfigPanel = wx.Panel(configPanel)
 
-		sizer = wx.GridBagSizer(2, 2)
+		sizer = wx.GridBagSizer(5, 5)
 		leftConfigPanel.SetSizer(sizer)
-		sizer = wx.GridBagSizer(2, 2)
+		sizer = wx.GridBagSizer(5, 5)
 		rightConfigPanel.SetSizer(sizer)
 
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 		configPanel.SetSizer(sizer)
 		sizer.Add(leftConfigPanel, border=35, flag=wx.RIGHT)
-		sizer.Add(rightConfigPanel)
+		sizer.Add(rightConfigPanel, border=35)
 		leftConfigPanel.main = self
 		rightConfigPanel.main = self
 		return leftConfigPanel, rightConfigPanel, configPanel
@@ -55,17 +55,17 @@ class configPanelBase(wx.Panel):
 		leftConfigPanel = wx.Panel(configPanel)
 		rightConfigPanel = wx.Panel(configPanel)
 
-		sizer = wx.GridBagSizer(2, 2)
+		sizer = wx.GridBagSizer(5, 5)
 		leftConfigPanel.SetSizer(sizer)
 		#sizer.AddGrowableCol(1)
 
-		sizer = wx.GridBagSizer(2, 2)
+		sizer = wx.GridBagSizer(5, 5)
 		rightConfigPanel.SetSizer(sizer)
 		#sizer.AddGrowableCol(1)
 
 		sizer = wx.BoxSizer(wx.HORIZONTAL)
 		sizer.Add(leftConfigPanel, proportion=1, border=35, flag=wx.EXPAND)
-		sizer.Add(rightConfigPanel, proportion=1, flag=wx.EXPAND)
+		sizer.Add(rightConfigPanel, proportion=1, border=0, flag=wx.EXPAND)
 		configPanel.SetSizer(sizer)
 
 		configPanel.SetAutoLayout(1)
@@ -198,7 +198,7 @@ class SettingRow(object):
 			flag = wx.EXPAND
 
 		sizer.Add(self.label, (x,y), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT,border=10)
-		sizer.Add(self.ctrl, (x,y+1), flag=wx.ALIGN_CENTER_VERTICAL|flag)
+		sizer.Add(self.ctrl, (x,y+1), flag=wx.ALIGN_CENTER_VERTICAL|flag, border=3)
 		if self.setting.getExpertSubCategory() is not None:
 			self._expert_button = wx.Button(panel, -1, '...', style=wx.BU_EXACTFIT)
 			self._expert_button.SetFont(wx.Font(wx.SystemSettings.GetFont(wx.SYS_ANSI_VAR_FONT).GetPointSize() * 0.8, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL))
