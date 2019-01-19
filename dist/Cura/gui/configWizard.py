@@ -9,6 +9,8 @@ import math
 import wx
 import wx.wizard
 
+import re
+
 from Cura.gui import firmwareInstall
 from Cura.gui import printWindow
 from Cura.util import machineCom
@@ -370,8 +372,19 @@ class OtherMachineSelectPage(InfoPage):
 		self.options = []
 		machines = resources.getDefaultMachineProfiles()
 		machines.sort()
+
 		for filename in machines:
 			name = os.path.splitext(os.path.basename(filename))[0]
+			if ' ' in name:
+				try:
+					os.remove(filename)
+					machines.remove(filename)
+				except:
+					# print("Could not remove " + str(filename))
+					pass
+				continue
+			name = re.sub(r"^\d{2}_", "", name)
+			name = name.replace("_", " ")
 			item = self.AddRadioButton(name)
 			item.filename = filename
 			item.Bind(wx.EVT_RADIOBUTTON, self.OnProfileSelect)
