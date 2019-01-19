@@ -84,12 +84,18 @@ def setupLocalization(selectedLanguage = None):
 def getLanguageOptions():
 	return [
 		['en', 'English'],
-		['de', 'Deutsch'],
-		['fr', 'French'],
-		['tr', 'Turkish'],
+		# ['de', 'Deutsch'],
+		# ['fr', 'French'],
+		# ['tr', 'Turkish'],
 		# ['ko', 'Korean'],
 		# ['zh', 'Chinese'],
 		# ['nl', 'Nederlands'],
 		# ['es', 'Spanish'],
 		# ['po', 'Polish']
 	]
+
+def getIconBitmap():
+	path = os.path.normpath(os.path.join(resourceBasePath, "fracktory.ico"))
+	# icon = wx.EmptyIcon()
+	# icon.CopyFromBitmap(wx.Bitmap(path, wx.BITMAP_TYPE_ANY))
+	return path

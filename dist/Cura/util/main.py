@@ -33,6 +33,7 @@ class printer_settings_frame ( wx.Frame ):
 
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		# self.setIcon(wx.IconFromLocation(resources.getIconBitmap()))
 		self.SetIcon(icon.GetIcon())
 		Publisher.subscribe(self.connection_data, ("ip_api"))
 		self.menu = wx.MenuBar( 0 )
