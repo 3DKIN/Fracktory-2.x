@@ -1,14 +1,27 @@
-!ifndef VERSION
-  !define VERSION '1.00'
-!endif
+!define APP_NAME "Fracktory"
+!define APP_VERSION "2.6"
+!define VERSION '1.3' ; 
+!define VI_VERSION '${VERSION}.0.0' ; Use x.x.x.x for Windows file info
 
-!define DIST_NAME "Fracktory2.6"
+!define COMPANY_NAME "Fracktal Works"
+!define NAME "${APP_NAME} ${APP_VERSION}"
+!define DIST_NAME "${APP_NAME}${APP_VERSION}"
 
 ; The name of the installer
-Name "Fracktory 2018"
+Name "${NAME} Installer v${VERSION}"
 
 ; The file to write
-OutFile "Setup_${DIST_NAME}.exe"
+OutFile "Setup_${NAME}_${VERSION}.exe"
+VIProductVersion "${VI_VERSION}"
+VIAddVersionKey "ProductName" "${APP_NAME}"
+; VIAddVersionKey "Comments" "Slicer for ${COMPANY_NAME} 3D printers"
+VIAddVersionKey "CompanyName" "${COMPANY_NAME}"
+VIAddVersionKey "LegalTrademarks" "${COMPANY_NAME}"
+VIAddVersionKey "LegalCopyright" "${COMPANY_NAME}"
+VIAddVersionKey "FileDescription" "Slicer for ${COMPANY_NAME} 3D printers"
+VIAddVersionKey "FileVersion" "${VERSION}"
+VIAddVersionKey "ProductVersion" "${VI_VERSION}"
+
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\${DIST_NAME}
