@@ -130,6 +130,12 @@ class simpleModePanel(wx.Panel):
 		for setting in profile.settingsList:
 			if not setting.isProfile():
 				continue
+			if setting.isAdvanced() and setting.getName() == "nozzle_size":
+				# print("2 {} = {}".format(setting.getName(), setting.getValue()))
+				nozzle = profile.getMachineSetting('custom_nozzle')
+				if nozzle:
+					settings[setting.getName()] = nozzle
+					continue
 			settings[setting.getName()] = setting.getDefault()
 
 		for button in self._print_profile_options:
@@ -139,7 +145,7 @@ class simpleModePanel(wx.Panel):
 				for setting in profile.settingsList:
 					if setting.isProfile():
 						if cp.has_option('profile', setting.getName()):
-							settings[setting.getName()] = cp.get('profile', setting.getName())
+							settings[setting.getName()] = eval(cp.get('profile', setting.getName()), {"profile": profile}, {})
 		if profile.getMachineSetting('gcode_flavor') != 'UltiGCode':
 			for button in self._print_material_options:
 				if button.GetValue():

@@ -113,6 +113,9 @@ class setting(object):
 	def isAlteration(self):
 		return self._category == 'alteration'
 
+	def isAdvanced(self):
+		return self._category == 'advanced'
+
 	def isProfile(self):
 		return not self.isAlteration() and not self.isPreference() and not self.isMachineSetting()
 
@@ -535,6 +538,8 @@ setting('serial_baud_auto', '', int, 'machine', 'hidden')
 setting('wireless_ip', '', str, 'machine', 'hidden').setLabel(_("Printer IP"), _("Printer local IP"))
 setting('wireless_api', '', str, 'machine', 'hidden').setLabel(_("API Key"), _("API Key for access"))
 
+setting('custom_nozzle', 0.4, float, 'machine', 'hidden').setRange(0.1,10).setLabel(_("Nozzle size (mm)"), _("0.8 Nozzle quickprint reset fix"))
+
 setting('name', '', str, 'machine', 'hidden').setLabel(_("Name/Company"), _("Enter Name or Comapny"))
 setting('address', '', str, 'machine', 'hidden').setLabel(_("Address"), _("Printer's location"))
 setting('state', '', str, 'machine', 'hidden').setLabel(_("State"), _("State"))
@@ -782,6 +787,9 @@ def resetProfile():
 	for set in settingsList:
 		if not set.isProfile():
 			continue
+		# if set.isAdvanced() and set.getName() == "nozzle_size" and set.getValue() != set.getDefault():
+		# 	print("1 {} = {}".format(set.getName(), set.getValue()))
+		# 	continue
 		set.setValue(set.getDefault())
 
 	if getMachineSetting('machine_type') == 'ultimaker':
@@ -795,7 +803,10 @@ def resetProfile():
 		putProfileSetting('nozzle_size', '0.4')
 		putProfileSetting('retraction_enable', 'True')
 	else:
-		putProfileSetting('nozzle_size', '0.5')
+		nozzle = getMachineSetting('custom_nozzle')
+		if nozzle is None:
+			nozzle = '0.5'
+		putProfileSetting('nozzle_size', nozzle)
 		putProfileSetting('retraction_enable', 'True')
 
 def setProfileFromString(options):
