@@ -13,6 +13,7 @@ class simpleModePanel(wx.Panel):
 		super(simpleModePanel, self).__init__(parent)
 		self._callback = callback
 		self.SetBackgroundColour( wx.Colour( 255, 255, 255 ) )
+		self._nozzle_size_options = [0.25, 0.4, 0.5, 0.6, 0.8]
 		self._print_profile_options = []
 		self._print_material_options = []
 
@@ -51,6 +52,28 @@ class simpleModePanel(wx.Panel):
 		if profile.getMachineSetting('gcode_flavor') == 'UltiGCode':
 			printMaterialPanel.Show(False)
 
+		self.nozzle_size_panel = wx.Panel(self)
+		self.nozzle_size_label = wx.StaticText(self.nozzle_size_panel, -1, _("Diameter (mm):"))
+		self.nozzle_size_label.SetFont( wx.Font( 12, 74, 90, 90, False, "Sans" ) )
+		choices = []
+		for i in self._nozzle_size_options:
+			choices.append(_(str(i)))
+		self.nozzle_size_combo = wx.ComboBox(self.nozzle_size_panel, -1, '', choices=choices, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+		self.nozzle_size_combo.SetFont( wx.Font( 12, 74, 90, 90, False, "Sans" ) )
+		index = 1 # fallback index
+		try:
+			nozzle = profile.getPreferenceFloat("active_nozzle")
+			if nozzle is None or nozzle <= 0:
+				nozzle = 0.4
+			index = self._nozzle_size_options.index(nozzle)
+		except:
+			pass
+		self.nozzle_size_combo.SetSelection(index)
+		sizer = wx.BoxSizer(wx.VERTICAL)
+		sizer.Add(self.nozzle_size_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP, 10)
+		sizer.Add(self.nozzle_size_combo, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.EXPAND, 10)
+		self.nozzle_size_panel.SetSizer(sizer)
+
 		# self.printSupport = wx.CheckBox(self, -1, _("Print support structure"))
 		# self.printSupport.SetFont( wx.Font( 12, 74, 90, 90, False, "Sans" ) )
 		self.platform_adhesion_panel = wx.Panel(self)
@@ -79,6 +102,13 @@ class simpleModePanel(wx.Panel):
 		sizer = wx.GridBagSizer()
 		self.SetSizer(sizer)
 		sizer.Add((15, 15), (0, 0))
+		sb = wx.StaticBox(self, label=_("Nozzle:"))
+		sb.SetFont( wx.Font( 12, 74, 90, 92, False, "Sans" ) )
+		boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
+		boxsizer.Add(self.nozzle_size_panel)
+		sizer.Add(boxsizer, (1,0), flag=wx.EXPAND)
+		sizer.Add((20, 20), (2, 0))
+
 		sb = wx.StaticBox(printTypePanel, label=_("Print Quality:"))
 		sb.SetFont( wx.Font( 12, 74, 90, 92, False, "Sans" ) )
 		boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
@@ -86,8 +116,8 @@ class simpleModePanel(wx.Panel):
 			boxsizer.Add(button)
 		printTypePanel.SetSizer(wx.BoxSizer(wx.VERTICAL))
 		printTypePanel.GetSizer().Add(boxsizer, flag=wx.EXPAND)
-		sizer.Add(printTypePanel, (1,0), flag=wx.EXPAND)
-		sizer.Add((20, 20), (2, 0))
+		sizer.Add(printTypePanel, (3,0), flag=wx.EXPAND)
+		sizer.Add((20, 20), (4, 0))
 		sb = wx.StaticBox(printMaterialPanel, label=_("Material:"))
 		sb.SetFont( wx.Font( 12, 74, 90, 92, False, "Sans" ) )
 		boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
@@ -95,15 +125,15 @@ class simpleModePanel(wx.Panel):
 			boxsizer.Add(button)
 		printMaterialPanel.SetSizer(wx.BoxSizer(wx.VERTICAL))
 		printMaterialPanel.GetSizer().Add(boxsizer, flag=wx.EXPAND)
-		sizer.Add(printMaterialPanel, (3,0), flag=wx.EXPAND)
-		sizer.Add((20, 20), (4, 0))
+		sizer.Add(printMaterialPanel, (5,0), flag=wx.EXPAND)
+		sizer.Add((20, 20), (6, 0))
 		sb = wx.StaticBox(self, label=_("Other:"))
 		sb.SetFont( wx.Font( 12, 74, 90, 92, False, "Sans" ) )
 		boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
 		# boxsizer.Add(self.printSupport)
 		boxsizer.Add(self.platform_adhesion_panel)
 		boxsizer.Add(self.platform_support_panel)
-		sizer.Add(boxsizer, (5,0), flag=wx.EXPAND)
+		sizer.Add(boxsizer, (7,0), flag=wx.EXPAND)
 
 		for button in self._print_profile_options:
 			button.Bind(wx.EVT_RADIOBUTTON, self._update)
@@ -111,10 +141,12 @@ class simpleModePanel(wx.Panel):
 			button.Bind(wx.EVT_RADIOBUTTON, self._update)
 
 		# self.printSupport.Bind(wx.EVT_CHECKBOX, self._update)
+		self.nozzle_size_combo.Bind(wx.EVT_COMBOBOX, self._update)
 		self.platform_adhesion_combo.Bind(wx.EVT_COMBOBOX, self._update)
 		self.platform_support_combo.Bind(wx.EVT_COMBOBOX, self._update)
 
 	def _update(self, e):
+		profile.putPreference('active_nozzle', float(self.nozzle_size_combo.GetStringSelection()))
 		for button in self._print_profile_options:
 			if button.GetValue():
 				profile.putPreference('simpleModeProfile', button.base_filename)
@@ -132,9 +164,11 @@ class simpleModePanel(wx.Panel):
 				continue
 			if setting.isAdvanced() and setting.getName() == "nozzle_size":
 				# print("2 {} = {}".format(setting.getName(), setting.getValue()))
-				nozzle = profile.getMachineSetting('custom_nozzle')
+				# nozzle = profile.getMachineSetting('custom_nozzle')
+				nozzle = profile.getPreference('active_nozzle')
 				if nozzle:
-					settings[setting.getName()] = nozzle
+					# print("3 {} = {}".format("active_nozzle", nozzle))
+					settings["nozzle_size"] = nozzle
 					continue
 			settings[setting.getName()] = setting.getDefault()
 

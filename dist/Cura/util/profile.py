@@ -499,6 +499,8 @@ setting('filament_physical_density', '1240', float, 'preference', 'hidden').setR
 setting('language', 'English', str, 'preference', 'hidden').setLabel(_('Language'), _('Change the language in which Cura runs. Switching language requires a restart of Cura'))
 setting('active_machine', '0', int, 'preference', 'hidden')
 
+setting('active_nozzle', 0.4, float, 'preference', 'hidden')
+
 setting('model_colour', '#C22E2E', str, 'preference', 'hidden').setLabel(_('Model colour'), _('Display color for first extruder'))
 setting('model_colour2', '#CB3030', str, 'preference', 'hidden').setLabel(_('Model colour (2)'), _('Display color for second extruder'))
 setting('model_colour3', '#DDD93C', str, 'preference', 'hidden').setLabel(_('Model colour (3)'), _('Display color for third extruder'))
@@ -538,7 +540,7 @@ setting('serial_baud_auto', '', int, 'machine', 'hidden')
 setting('wireless_ip', '', str, 'machine', 'hidden').setLabel(_("Printer IP"), _("Printer local IP"))
 setting('wireless_api', '', str, 'machine', 'hidden').setLabel(_("API Key"), _("API Key for access"))
 
-setting('custom_nozzle', 0.4, float, 'machine', 'hidden').setRange(0.1,10).setLabel(_("Nozzle size (mm)"), _("0.8 Nozzle quickprint reset fix"))
+# setting('custom_nozzle', 0.4, float, 'machine', 'hidden').setRange(0.1,10).setLabel(_("Nozzle size (mm)"), _("0.8 Nozzle quickprint reset fix"))
 
 setting('name', '', str, 'machine', 'hidden').setLabel(_("Name/Company"), _("Enter Name or Comapny"))
 setting('address', '', str, 'machine', 'hidden').setLabel(_("Address"), _("Printer's location"))
@@ -803,7 +805,8 @@ def resetProfile():
 		putProfileSetting('nozzle_size', '0.4')
 		putProfileSetting('retraction_enable', 'True')
 	else:
-		nozzle = getMachineSetting('custom_nozzle')
+		# nozzle = getMachineSetting('custom_nozzle')
+		nozzle = getPreference('active_nozzle')
 		if nozzle is None:
 			nozzle = '0.5'
 		putProfileSetting('nozzle_size', nozzle)
