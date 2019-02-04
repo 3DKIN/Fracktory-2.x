@@ -1,11 +1,13 @@
 !define APP_NAME "Fracktory"
 !define APP_VERSION "2.6"
-!define VERSION '1.3' ; 
+!define VERSION '1.4' ; 
 !define VI_VERSION '${VERSION}.0.0' ; Use x.x.x.x for Windows file info
 
 !define COMPANY_NAME "Fracktal Works"
 !define NAME "${APP_NAME} ${APP_VERSION}"
 !define DIST_NAME "${APP_NAME}${APP_VERSION}"
+
+!define SETTINGS_PATH "$PROFILE\.fracktory\${APP_VERSION}"
 
 ; The name of the installer
 Name "${NAME} Installer v${VERSION}"
@@ -24,11 +26,11 @@ VIAddVersionKey "ProductVersion" "${VI_VERSION}"
 
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\${DIST_NAME}
+InstallDir $PROGRAMFILES\${APP_NAME}
 
 ; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\${DIST_NAME}" "Install_Dir"
+InstallDirRegKey HKLM "Software\${APP_NAME}" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -81,6 +83,40 @@ ReserveFile '${NSISDIR}\Plugins\x86-ansi\InstallOptions.dll'
 
 ;--------------------------------
 
+; Uninstall Previous
+Function .onInit
+
+	; MessageBox MB_OK "${SETTINGS_PATH}" IDOK done
+ 
+	ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString"
+	StrCmp $R0 "" done
+	
+	MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+	"${APP_NAME} is already installed. $\n$\nClick `OK` to remove the \
+	previous version or `Cancel` to cancel this upgrade." \
+	IDOK uninst
+	Abort
+	
+	;Run the uninstaller
+	uninst:
+		ClearErrors
+		ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
+		
+		IfErrors no_remove_uninstaller done
+			;You can either use Delete /REBOOTOK in the uninstaller or add some code
+			;here to remove the uninstaller. Use a registry key to check
+			;whether the user has chosen to uninstall. If you are using an uninstaller
+			;components page, make sure all sections are uninstalled.
+	no_remove_uninstaller:
+	
+	done:
+ 
+FunctionEnd
+
+; Section "" SecUninstallPrevious
+;     Call UninstallPrevious
+; SectionEnd
+
 ; The stuff to install
 Section "Fracktory"
 
@@ -94,21 +130,21 @@ Section "Fracktory"
   File /r /x "*.pyc" "dist\"
 
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\${DIST_NAME}" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\${APP_NAME}" "Install_Dir" "$INSTDIR"
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "DisplayName" "${DIST_NAME}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "DisplayName" "${DIST_NAME}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
 
   ; Write start menu entries for all users
   SetShellVarContext all
 
-  CreateDirectory "$SMPROGRAMS\${DIST_NAME}"
-  CreateShortCut "$SMPROGRAMS\${DIST_NAME}\Uninstall Fracktory.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\${DIST_NAME}\Fracktory.lnk" "$INSTDIR\python\pythonw.exe " '-m "Cura.cura"' "$INSTDIR\resources\fracktory.ico" 0
+  CreateDirectory "$SMPROGRAMS\${APP_NAME}"
+  CreateShortCut "$SMPROGRAMS\${APP_NAME}\Uninstall Fracktory.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\${APP_NAME}\Fracktory.lnk" "$INSTDIR\python\pythonw.exe " '-m "Cura.cura"' "$INSTDIR\resources\fracktory.ico" 0
 
 
 
@@ -117,7 +153,7 @@ SectionEnd
 Function LaunchLink
   ; Write start menu entries for all users
   SetShellVarContext all
-  Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\${DIST_NAME}\Fracktory.lnk"'
+  Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\${APP_NAME}\Fracktory.lnk"'
 FunctionEnd
 
 Section "Install Visual Studio 2010 Redistributable"
@@ -166,13 +202,20 @@ SectionEnd
 Section "Uninstall"
 
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${DIST_NAME}"
-  DeleteRegKey HKLM "SOFTWARE\${DIST_NAME}"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
+  DeleteRegKey HKLM "SOFTWARE\${APP_NAME}"
 
   ; Write start menu entries for all users
   SetShellVarContext all
+  ; Remove profile
+  ${If} ${FileExists} "${SETTINGS_PATH}\*"
+		MessageBox MB_YESNO `Remove settings and machine profiles?` IDYES yes IDNO no
+	yes:
+		RMDir /r "${SETTINGS_PATH}"
+	no:
+  ${EndIf}
   ; Remove directories used
-  RMDir /r "$SMPROGRAMS\${DIST_NAME}"
+  RMDir /r "$SMPROGRAMS\${APP_NAME}"
   RMDir /r "$INSTDIR"
 
 SectionEnd
